@@ -95,6 +95,7 @@ def init():
         collectd.info('sht21 user-mode plugin initialized')
     except IOError, e:
         collectd.error('sht21 plugin: Could not initialyze: %s' % e)
+        collectd.unregister_read(read)
 
 
 def read():
