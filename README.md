@@ -3,9 +3,9 @@
 This is a collections of Python plugin for Collectd.
 
 - `cpu_temp.py`: Report the CPU temperature. Tested on a Raspberry Pi 3.
-- `sht21.py`: Measure temperature and relative humidity from a Sensirion SHT21
-  sensor connected via I²C. Calculate dew point and absolute humidity. Tested
-  on a Raspberry Pi 3.
+- `sht21-kernel.py`/`sht21-usermode.py`: Measure temperature and relative
+  humidity from a Sensirion SHT21 sensor connected via I²C. Calculate dew
+  point and absolute humidity. Tested on a Raspberry Pi 3.
 - `mcp3425.py`: Measure voltage using an MCP3425 analog-digital converter.
 
 For more information, please refer to [my
@@ -31,7 +31,7 @@ If your CPU temperature cannot be read from
         </Module>
     </Plugin>
 
-### sht21
+### sht21-kernel
 
 For this plugin to work, the `sht21` kernel module must be loaded:
 
@@ -42,8 +42,12 @@ There are currently no configuration options available.
     LoadPlugin python
     <Plugin python>
         ModulePath "/opt/collectd_plugins"
-        Import "sht21"
+        Import "sht21-kernel"
     </Plugin>
+
+### sht21-usermode
+
+Same as `sht21-kernel`, but it does not require the `sht21` kernel module.
 
 ### mcp3425
 
