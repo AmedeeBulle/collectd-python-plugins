@@ -3,7 +3,7 @@
 This is a collections of Python plugin for Collectd.
 
 - `cpu_temp.py`: Report the CPU temperature. Tested on a Raspberry Pi 3.
-- `sht21-kernel.py`/`sht21-usermode.py`: Measure temperature and relative
+- `sht21_kernel.py`/`sht21_usermode.py`: Measure temperature and relative
   humidity from a Sensirion SHT21 sensor connected via I²C. Calculate dew
   point and absolute humidity. Tested on a Raspberry Pi 3.
 - `mcp3425.py`: Measure voltage using an MCP3425 analog-digital converter.
@@ -31,7 +31,7 @@ If your CPU temperature cannot be read from
         </Module>
     </Plugin>
 
-### sht21-kernel
+### sht21_kernel
 
 For this plugin to work, the `sht21` kernel module must be loaded:
 
@@ -42,12 +42,24 @@ There are currently no configuration options available.
     LoadPlugin python
     <Plugin python>
         ModulePath "/opt/collectd_plugins"
-        Import "sht21-kernel"
+        Import "sht21_kernel"
     </Plugin>
 
-### sht21-usermode
+### sht21_usermode
 
-Same as `sht21-kernel`, but it does not require the `sht21` kernel module.
+Same as `sht21_kernel`, but it does not require the `sht21` kernel module.  
+The downside of the user-mode plugin is that it does not allow concurrent
+access. As workaround, you can specify a lock file shared by
+concurrent applications.  
+
+    LoadPlugin python
+    <Plugin python>
+        ModulePath "/opt/collectd_plugins"
+        Import "sht21_sht21_usermode"
+        <Module sht21_usermode>
+            LockFile "/var/run/lock/sht21.lock"
+        </Module>
+    </Plugin>
 
 ### mcp3425
 

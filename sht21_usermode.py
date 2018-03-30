@@ -10,14 +10,14 @@ Source for calculations:
 http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
-
+from fcntl import flock, LOCK_EX, LOCK_UN
 import math
-
 import collectd
-
 from sht21 import SHT21
 
 sht21 = None
+lock_file = None
+kock_handle = None
 
 
 def pws_constants(t):
@@ -88,8 +88,30 @@ def ah(t, rh):
     return C * (Pw * 100) / T
 
 
+def config(config):
+    global lock_file
+
+    for node in config.children:
+        key = node.key.lower()
+        val = node.values[0]
+
+        if key == 'lockfile':
+            lock_file = val
+            collectd.info('sht21 user-mode plugin: Using lock file %s' %
+                          lock_file)
+
+
 def init():
-    global sht21
+    global sht21, lock_file, lock_handle
+
+    if lock_file:
+        # Try to open lock file, in case of failure proceed without locking
+        try:
+            lock_handle = open(lock_file, 'w')
+        except IOError, e:
+            collectd.error('sht21 plugin: Could not open lock file: %s' % e)
+            collectd.error('Proceeding without locking')
+
     try:
         sht21 = SHT21(1)
         collectd.info('sht21 user-mode plugin initialized')
@@ -100,10 +122,14 @@ def init():
 
 def read():
     # Read values
-    global sht21
+    global sht21, lock_handle
     try:
+        if lock_handle:
+            flock(lock_handle, LOCK_EX)
         temperature = sht21.read_temperature()
         humidity = sht21.read_humidity()
+        if lock_handle:
+            flock(lock_handle, LOCK_UN)
     except IOError, e:
         collectd.error('sht21 plugin: Could not read sensor data: %s' % e)
         return
@@ -127,5 +153,6 @@ def read():
     v_dew.dispatch(values=[dewpoint])
 
 
+collectd.register_config(config)
 collectd.register_init(init)
 collectd.register_read(read)
